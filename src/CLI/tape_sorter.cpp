@@ -7,7 +7,7 @@ int main(int argc, char *argv[]) {
         std::cout << "Invalid arguments\n" << "Usage: tape_sorter input_tape output_tape" << std::endl;
     }
 
-    TapeEmulator tape(argv[1], "..");
+    TapeEmulator tape(argv[1], argv[2], 16);
 
     (BubbleTapeSorter(tape))();
 }
