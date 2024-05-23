@@ -7,16 +7,16 @@
 #include <thread>
 
 #define MIN_M 8
-#define LOAD_INTERVAL ((float) 1/4)
+#define LOAD_INTERVAL (0.25)
 #define TMP_DIR "tmp"
 #define TMP_PREFIX "tmp"
 
-TapeEmulator::TapeEmulator(const std::string &input_tape_path, std::string output_tape_path, uint64_t m,
+TapeEmulator::TapeEmulator(const std::string &input_tape_path, const std::string &output_tape_path, uint64_t m,
                            std::chrono::nanoseconds read_write_delay, std::chrono::nanoseconds move_delay,
-                           std::string tmp_tapes_location) :
+                           const std::string &tmp_tapes_location) :
         read_write_delay(read_write_delay), move_delay(move_delay),
         input_tape_path(input_tape_path),
-        output_tape_path(std::move(output_tape_path)),
+        output_tape_path(output_tape_path),
         max_number_of_elements(m / sizeof(int32_t) / 2),
         tmp_tapes_location(tmp_tapes_location),
         relative_position(0),
@@ -89,7 +89,7 @@ bool TapeEmulator::moveLeft() {
         return true;
     }
 
-    if (relative_position <= (uint64_t) (max_number_of_elements * LOAD_INTERVAL) &&
+    if (relative_position <= (uint64_t) ((double) max_number_of_elements * LOAD_INTERVAL) &&
         (next_tape.num != cur_tape.num - 1 || !next_tape.array)) {
         assert(cur_tape.num != 0);
         save_tmp_tape(next_tape);
@@ -116,7 +116,7 @@ bool TapeEmulator::moveRight() {
         return false;
     }
 
-    if (relative_position >= (uint64_t) (max_number_of_elements * (1 - LOAD_INTERVAL)) &&
+    if (relative_position >= (uint64_t) ((double) max_number_of_elements * (1 - LOAD_INTERVAL)) &&
         (next_tape.num != cur_tape.num + 1 || !next_tape.array)) {
         assert(cur_tape.num != last_tape_num);
         save_tmp_tape(next_tape);
@@ -137,10 +137,15 @@ TapeEmulator::~TapeEmulator() {
     save_tmp_tape(cur_tape);
     save_tmp_tape(next_tape);
     std::ofstream output(output_tape_path);
-    for (uint32_t i = 0; i < last_tape_num; i++) {
+    for (uint32_t i = 0; i <= last_tape_num; i++) {
         std::ifstream cur(get_tmp_file_name(i));
         int32_t buf;
-        while (cur >> buf)
+        while (cur >> buf) {
+            std::this_thread::sleep_for(move_delay);
+            std::this_thread::sleep_for(read_write_delay);
+            std::this_thread::sleep_for(read_write_delay);
+            //delays because it's like move right, read from one tape and write to another
             output << buf << " ";
+        }
     }
 }

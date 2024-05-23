@@ -30,10 +30,10 @@ private:
     inline std::string get_tmp_file_name(uint32_t tape_num);
 
 public:
-    TapeEmulator(const std::string &input_tape_path, std::string output_tape_path, uint64_t m,
+    TapeEmulator(const std::string &input_tape_path, const std::string &output_tape_path, uint64_t m,
                  std::chrono::nanoseconds read_write_delay = std::chrono::nanoseconds(0),
                  std::chrono::nanoseconds move_delay = std::chrono::nanoseconds(0),
-                 std::string tmp_tapes_location = ".");
+                 const std::string &tmp_tapes_location = ".");
 
     void write(int32_t) override;
 
